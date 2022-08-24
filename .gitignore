@@ -1,3 +1,4 @@
+# -*- mode: gitignore; -*-
 .pybuild/
 .coverage
 /.tox
@@ -10,3 +11,7 @@ docs/build
 docs/source/generated
 build/
 dist/
+
+# emacs
+*~
+\#*\#
