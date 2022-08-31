@@ -24,7 +24,11 @@ class RisExtractor(DatasetMetadataExtractor):
     def get_required_content(self) -> bool:
         ds_path = Path(self.dataset.path)
         matching = ds_path.glob('**/*.ris')
-        cite_files = [Path(res["path"]) for res in self.dataset.get(matching)]
+        cite_files = []
+        for m in matching:
+            res = self.dataset.get(m)
+            cite_files.append(m)
+        #cite_files = [Path(res["path"]) for res in self.dataset.get(matching)]
         self._cite_files = cite_files
 
     def _read_files(self) -> list[dict]:
