@@ -46,7 +46,8 @@ def get_title(ref):
     
 
 def get_doi(ref):
-    return ref.get("doi", "N/A")
+    doi = ref.get("doi")
+    return "https://doi.org/" + doi if doi is not None else ""
 
 
 def get_date_published(ref):
