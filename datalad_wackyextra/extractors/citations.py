@@ -24,11 +24,15 @@ class RisExtractor(DatasetMetadataExtractor):
     def get_required_content(self) -> bool:
         ds_path = Path(self.dataset.path)
         matching = ds_path.glob('**/*.ris')
-        cite_files = []
-        for m in matching:
-            res = self.dataset.get(m)
-            cite_files.append(m)
-        #cite_files = [Path(res["path"]) for res in self.dataset.get(matching)]
+        """
+        Note: this glob is suboptimal for many reasons
+        - not sure if would do the right thing on Windows && probably would go through the git annex object tree
+        - chain 2 globs, one *.ris, other for all top-level directories
+        - Path objects have a method iterdir which would exclude hidden directories
+        - or look at git ls-files or rather ls-tree (ls-tree HEAD)
+        - ds.repo.call_git_items(...) -> to get a list
+        """
+        cite_files = [Path(res["path"]) for res in self.dataset.get(matching, result_renderer="disabled")]
         self._cite_files = cite_files
 
     def _read_files(self) -> list[dict]:
