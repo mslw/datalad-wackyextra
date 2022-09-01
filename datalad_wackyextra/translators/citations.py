@@ -58,7 +58,9 @@ def get_authors(ref):
 
 
 if __name__ == "__main__":
-    with open("/home/mszczepanik/Documents/test-bib/output.json") as jf:
+    import sys
+    fname = sys.argv[1]
+    with open(fname) as jf:
         j = json.load(jf)
         t = translate_ris(j)
         print(json.dumps(t))
