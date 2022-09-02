@@ -57,11 +57,86 @@ class RisTranslator:
         return translated_record
 
 
+class NbibTranslator:
+    def __init__(self, metadata_record):
+        self.metadata_record = metadata_record
+
+    def get_type(self, ref):
+        """ Returns publication type.
+        Note: MEDLINE/PubMed format allows several types, listed alphabetically
+        (e.g. Journal Article; Research Support, Non-U.S. Gov't; Review)
+        and nbib puts them in a list preserving order. PubMed's docs say that
+        99% of citations contain one of the following: Journal Article,
+        Letter, Editorial, News.
+        """
+        publication_types = ref.get("publication_types")
+        common_types = ["Journal Article", "Letter", "Editorial", "News"]
+        for t in common_types:
+            if t in publication_types:
+                return t
+        return "Other ({})".format("; ".join(publication_types))
+
+    def get_title(self, ref):
+        return ref.get("title")
+
+    def get_doi(self, ref):
+        doi = ref.get("doi")
+        return "https://doi.org/" + doi if doi is not None else ""
+
+    def get_date_published(self, ref):
+        dp = ref.get("publication_date")
+        if dp is not None:
+            # four-digit year should be first
+            dp = dp.split(' ')[0]
+        return dp
+
+    def get_authors(self, ref):
+        authors = []
+        for author in ref.get("authors"):
+            a = {"name": author.get("author")}
+            try:
+                names = {
+                    "givenName": author["first_name"],
+                    "familyName": author["last_name"],
+                }
+                a.update(names)
+            except KeyError:
+                pass
+            # todo: try to add orcid
+            authors.append(a)
+        return authors
+
+    def translate(self):
+        refs = self.metadata_record["extracted_metadata"]["refs"]
+        publications = []
+        for ref in refs:
+            publications.append(
+                {
+                    "type": self.get_type(ref),
+                    "title": self.get_title(ref),
+                    "doi": self.get_doi(ref),
+                    "datePublished": self.get_date_published(ref),
+                    "authors": self.get_authors(ref),
+                }
+            )
+        translated_record = {
+            "type": self.metadata_record["type"],
+            "dataset_id": self.metadata_record["dataset_id"],
+            "dataset_version": self.metadata_record["dataset_version"],
+            "name": "",
+            "publications": publications,
+        }
+        return translated_record
+
+
 if __name__ == "__main__":
     import sys
     fname = sys.argv[1]
     with open(fname) as jf:
         for line in jf:
             j = json.loads(line)
-            t = RisTranslator(j).translate()
+            if j["extractor_name"] == "we_ris":
+                t = RisTranslator(j).translate()
+            elif j["extractor_name"] == "we_nbib":
+                t = NbibTranslator(j).translate()
             print(json.dumps(t))
