@@ -34,6 +34,9 @@ class RisTranslator:
     def get_authors(self, ref):
         return [{"name": x} for x in self._getOneOf(ref, "authors", "first_authors")]
 
+    def get_publication_outlet(self, ref):
+        return self._getOneOf(ref, "journal_name", "secondary_title")
+
     def translate(self):
         refs = self.metadata_record["extracted_metadata"]["refs"]
         publications = []
@@ -45,6 +48,7 @@ class RisTranslator:
                     "doi": self.get_doi(ref),
                     "datePublished": self.get_date_published(ref),
                     "authors": self.get_authors(ref),
+                    "publicationOutlet": self.get_publication_outlet(ref),
                 }
             )
         translated_record = {
@@ -106,6 +110,9 @@ class NbibTranslator:
             authors.append(a)
         return authors
 
+    def get_publication_outlet(self, ref):
+        return ref.get("journal")
+
     def translate(self):
         refs = self.metadata_record["extracted_metadata"]["refs"]
         publications = []
@@ -117,6 +124,7 @@ class NbibTranslator:
                     "doi": self.get_doi(ref),
                     "datePublished": self.get_date_published(ref),
                     "authors": self.get_authors(ref),
+                    "publicationOutlet": self.get_publication_outlet(ref),
                 }
             )
         translated_record = {
