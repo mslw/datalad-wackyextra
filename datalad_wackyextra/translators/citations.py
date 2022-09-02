@@ -1,8 +1,58 @@
 import json
 
-class RisTranslator:
+class CitationTranslator:
+    """Base class for translators dealing with publications metadata
+
+    Derived classes should implement the get_* methods to provide values
+    in accordance with the datalad-catalog schema.
+    """
+
     def __init__(self, metadata_record):
         self.metadata_record = metadata_record
+
+    def get_type(self, ref):
+        pass
+
+    def get_title(self, ref):
+        pass
+
+    def get_doi(self, ref):
+        pass
+
+    def get_date_published(self, ref):
+        pass
+
+    def get_authors(self, ref):
+        pass
+
+    def get_publication_outlet(self, ref):
+        pass
+
+    def translate(self):
+        refs = self.metadata_record["extracted_metadata"]["refs"]
+        publications = []
+        for ref in refs:
+            publications.append(
+                {
+                    "type": self.get_type(ref),
+                    "title": self.get_title(ref),
+                    "doi": self.get_doi(ref),
+                    "datePublished": self.get_date_published(ref),
+                    "authors": self.get_authors(ref),
+                    "publicationOutlet": self.get_publication_outlet(ref),
+                }
+            )
+        translated_record = {
+            "type": self.metadata_record["type"],
+            "dataset_id": self.metadata_record["dataset_id"],
+            "dataset_version": self.metadata_record["dataset_version"],
+            "name": "",
+            "publications": publications,
+        }
+        return translated_record
+
+
+class RisTranslator(CitationTranslator):
 
     @staticmethod
     def _getOneOf(d, *args):
@@ -37,33 +87,8 @@ class RisTranslator:
     def get_publication_outlet(self, ref):
         return self._getOneOf(ref, "journal_name", "secondary_title")
 
-    def translate(self):
-        refs = self.metadata_record["extracted_metadata"]["refs"]
-        publications = []
-        for ref in refs:
-            publications.append(
-                {
-                    "type": self.get_type(ref),
-                    "title": self.get_title(ref),
-                    "doi": self.get_doi(ref),
-                    "datePublished": self.get_date_published(ref),
-                    "authors": self.get_authors(ref),
-                    "publicationOutlet": self.get_publication_outlet(ref),
-                }
-            )
-        translated_record = {
-            "type": self.metadata_record["type"],
-            "dataset_id": self.metadata_record["dataset_id"],
-            "dataset_version": self.metadata_record["dataset_version"],
-            "name": "",
-            "publications": publications,
-        }
-        return translated_record
 
-
-class NbibTranslator:
-    def __init__(self, metadata_record):
-        self.metadata_record = metadata_record
+class NbibTranslator(CitationTranslator):
 
     def get_type(self, ref):
         """ Returns publication type.
@@ -112,29 +137,6 @@ class NbibTranslator:
 
     def get_publication_outlet(self, ref):
         return ref.get("journal")
-
-    def translate(self):
-        refs = self.metadata_record["extracted_metadata"]["refs"]
-        publications = []
-        for ref in refs:
-            publications.append(
-                {
-                    "type": self.get_type(ref),
-                    "title": self.get_title(ref),
-                    "doi": self.get_doi(ref),
-                    "datePublished": self.get_date_published(ref),
-                    "authors": self.get_authors(ref),
-                    "publicationOutlet": self.get_publication_outlet(ref),
-                }
-            )
-        translated_record = {
-            "type": self.metadata_record["type"],
-            "dataset_id": self.metadata_record["dataset_id"],
-            "dataset_version": self.metadata_record["dataset_version"],
-            "name": "",
-            "publications": publications,
-        }
-        return translated_record
 
 
 if __name__ == "__main__":
