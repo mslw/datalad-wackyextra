@@ -1,5 +1,7 @@
 """Metadata extractor for citation file format"""
 
+import datetime
+import json
 from pathlib import Path
 from uuid import UUID
 
@@ -30,10 +32,8 @@ class CffExtractor(DatasetMetadataExtractor):
         with open(Path(self.dataset.path) / "CITATION.cff") as f:
             yamlContent = yaml.safe_load(f)
 
-        # iso-format dates (nonexhaustive - publications have them too)
-        if "date-released" in yamlContent:
-            isodate = yamlContent["date-released"].isoformat()
-            yamlContent["date-released"] = isodate
+        # Ensure data is json-serialisable by converting dates to iso-formatted strings
+        yamlContent = json.loads(json.dumps(yamlContent, cls=IsoDateEncoder))
 
         return ExtractorResult(
             extractor_version=self.get_version(),
@@ -45,3 +45,11 @@ class CffExtractor(DatasetMetadataExtractor):
             },
             immediate_data=yamlContent,
         )
+
+
+class IsoDateEncoder(json.JSONEncoder):
+    """Extension of json encoder which converts dates to iso-format strings"""
+    def default(self, obj):
+        if isinstance(obj, datetime.date):
+            return obj.isoformat()
+        return json.JSONEncoder.default(self, obj)
