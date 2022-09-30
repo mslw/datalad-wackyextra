@@ -15,13 +15,13 @@ command_suite = (
         # specification of a command, any number of commands can be defined
         (
             # importable module that contains the command implementation
-            'datalad_wackyextra.hello_cmd',
+            'datalad_wackyextra.translate',
             # name of the command class implementation in above module
-            'HelloWorld',
+            'Translate',
             # optional name of the command in the cmdline API
-            'hello-cmd',
+            'wacky-translate',
             # optional name of the command in the Python API
-            'hello_cmd'
+            'wacky_translate'
         ),
     ]
 )
