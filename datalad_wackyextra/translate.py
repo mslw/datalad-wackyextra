@@ -11,6 +11,8 @@ from datalad.interface.results import get_status_dict
 
 from .translators.citations import RisTranslator, NbibTranslator
 from .translators.cff import CffTranslator
+from .translators.core import MetaladCoreTranslator
+from .translators.minimeta import MinimetaTranslator
 
 @build_doc
 class Translate(Interface):
@@ -45,6 +47,10 @@ class Translate(Interface):
                     t = NbibTranslator(j)
                 elif j["extractor_name"] == "we_cff":
                     t = CffTranslator(j)
+                elif j["extractor_name"] == "metalad_core" and j["type"] == "dataset":
+                    t = MetaladCoreTranslator(j)
+                elif j["extractor_name"] == "metalad_studyminimeta":
+                    t = MinimetaTranslator(j)
                 else:
                     # TODO: what to do (incomplete results)
                     pass

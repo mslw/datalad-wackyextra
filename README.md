@@ -12,7 +12,14 @@ The following metadata extractors are made available for `datalad meta-extract`:
 - `we_cff` for CFF files
 
 ## Translators
-Translators are provided to translate the metadata produced by the extractors above into datalad-catalog format.
+Translators translate extracted metadata into datalad-catalog format.
+Translators are available for all the wacky extractors:
+- `we_ris`,
+- `we_nbib`,
+- `we_cff`,
+and, additionally, for the following metalad extractors:
+- `metalad_core`,
+- `metalad_studyminimeta`.
 
 ## Commands
 - `wacky-translate`: read a json lines file with metadata entries and apply available translators to produce
