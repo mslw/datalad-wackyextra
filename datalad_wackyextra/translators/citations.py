@@ -28,6 +28,14 @@ class CitationTranslator:
     def get_publication_outlet(self, ref):
         pass
 
+    def get_extractors_used(self):
+        keys = [
+            "extractor_name", "extractor_version",
+            "extraction_parameter", "extraction_time",
+            "agent_name", "agent_email",
+        ]
+        return [{k: self.metadata_record[k] for k in keys}]
+
     def translate(self):
         refs = self.metadata_record["extracted_metadata"]["refs"]
         publications = []
@@ -48,6 +56,7 @@ class CitationTranslator:
             "dataset_version": self.metadata_record["dataset_version"],
             "name": "",
             "publications": publications,
+            "extractors_used": self.get_extractors_used(),
         }
         return translated_record
 

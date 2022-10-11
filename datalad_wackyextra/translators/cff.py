@@ -95,11 +95,12 @@ class CffTranslator:
         pass
 
     def get_extractors_used(self):
-        mandatory_keys = [
+        keys = [
             "extractor_name", "extractor_version",
             "extraction_parameter", "extraction_time",
+            "agent_name", "agent_email",
         ]
-        return [{k: self.metadata_record[k] for k in mandatory_keys}]
+        return [{k: self.metadata_record[k] for k in keys}]
 
     def translate(self):
         
