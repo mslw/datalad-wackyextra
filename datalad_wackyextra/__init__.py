@@ -3,7 +3,7 @@
 __docformat__ = 'restructuredtext'
 
 import logging
-lgr = logging.getLogger('datalad.helloworld')
+lgr = logging.getLogger('datalad.wackyextra')
 
 # Defines a datalad command suite.
 # This variable must be bound as a setuptools entrypoint
