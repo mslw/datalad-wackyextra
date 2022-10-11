@@ -1,6 +1,6 @@
 __docformat__ = 'restructuredtext'
 
-import json
+import jsonlines
 
 from datalad.interface.base import Interface
 from datalad.interface.base import build_doc
@@ -38,9 +38,9 @@ class Translate(Interface):
     @eval_results
     def __call__(infile, outfile=None):
         translated_entries = []
-        with open(infile, "rt") as jf:
-            for line in jf:
-                j = json.loads(line)
+        with jsonlines.open(infile, "r") as jf:
+            for j in jf:
+                # iterates over json objects (lines) in the file
                 if j["extractor_name"] == "we_ris":
                     t = RisTranslator(j)
                 elif j["extractor_name"] == "we_nbib":
@@ -56,9 +56,8 @@ class Translate(Interface):
                     pass
                 translated_entries.append(t.translate())
                 
-        with open(outfile, "at") as jf:
-            for entry in translated_entries:
-                json.dump(entry, jf)
+        with jsonlines.open(outfile, "a") as jf:
+            jf.write_all(translated_entries)
 
         # TODO yield proper result
         yield get_status_dict(
