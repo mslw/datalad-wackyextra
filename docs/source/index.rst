@@ -1,8 +1,9 @@
-DataLad extension template
-**************************
+Dr Panik's Wacky Extractors (datalad-wackyextra)
+************************************************
 
-This is a template for creating a `DataLad <http://datalad.org>`__ extension
-that equips DataLad with additional functionality.
+This extension equips DataLad with a couple additional metadata extractors
+and adds a command to translate their outputs (and those of a few others)
+for the `datalad-catalog <https://github.com/datalad/datalad-catalog>`_ schema.
 
 
 API
