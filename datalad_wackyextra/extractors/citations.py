@@ -24,18 +24,13 @@ class RisExtractor(DatasetMetadataExtractor):
         return DataOutputCategory.IMMEDIATE
 
     def get_required_content(self) -> bool:
-        ds_path = Path(self.dataset.path)
-        matching = ds_path.glob('**/*.ris')
-        """
-        Note: this glob is suboptimal for many reasons
-        - not sure if would do the right thing on Windows && probably would go through the git annex object tree
-        - chain 2 globs, one *.ris, other for all top-level directories
-        - Path objects have a method iterdir which would exclude hidden directories
-        - or look at git ls-files or rather ls-tree (ls-tree HEAD)
-        - ds.repo.call_git_items(...) -> to get a list
-        """
-        cite_files = [Path(res["path"]) for res in self.dataset.get(matching, result_renderer="disabled")]
-        self._cite_files = cite_files
+        files = list(self.dataset.repo.call_git_items_(["ls-files", "*.ris"]))
+        get_items = self.dataset.get(
+            files,
+            result_renderer="disabled",
+            return_type="iterator",
+        )
+        self._cite_files = [Path(res["path"]) for res in get_items]
 
     def _read_files(self) -> list[dict]:
         refs = []
@@ -72,10 +67,13 @@ class NbibExtractor(DatasetMetadataExtractor):
         return DataOutputCategory.IMMEDIATE
 
     def get_required_content(self) -> bool:
-        ds_path = Path(self.dataset.path)
-        matching = ds_path.glob("**/*.nbib")
-        cite_files = [Path(res["path"]) for res in self.dataset.get(matching, result_renderer="disabled")]
-        self._cite_files = cite_files
+        files = list(self.dataset.repo.call_git_items_(["ls-files", "*.nbib"]))
+        get_items = self.dataset.get(
+            files,
+            result_renderer="disabled",
+            return_type="iterator",
+        )
+        self._cite_files = [Path(res["path"]) for res in get_items]
 
     @staticmethod
     def _coerce_types(ref) -> dict:
