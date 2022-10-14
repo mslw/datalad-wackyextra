@@ -76,6 +76,8 @@ class RisTranslator(CitationTranslator):
             "JOUR": "Journal Article",
             "CHAP": "Book Section",
             "THES": "Thesis",
+            "COMP": "Computer program",
+            "GEN" : "Generic",
         }
         ris_abbrev = ref["type_of_reference"]
         return type_map.get(ris_abbrev, "Other ({})".format(ris_abbrev))
