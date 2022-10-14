@@ -25,12 +25,19 @@ class RisExtractor(DatasetMetadataExtractor):
 
     def get_required_content(self) -> bool:
         files = list(self.dataset.repo.call_git_items_(["ls-files", "*.ris"]))
+        if len(files) == 0:
+            # this is fine, leave an empty list for our extractor, return true
+            self._cite_files = []
+            return True
         get_items = self.dataset.get(
+            # note: get([]) would get everything, hence conditional above
             files,
             result_renderer="disabled",
             return_type="iterator",
         )
+        # todo: proper error handling
         self._cite_files = [Path(res["path"]) for res in get_items]
+        return True
 
     def _read_files(self) -> list[dict]:
         refs = []
@@ -68,12 +75,17 @@ class NbibExtractor(DatasetMetadataExtractor):
 
     def get_required_content(self) -> bool:
         files = list(self.dataset.repo.call_git_items_(["ls-files", "*.nbib"]))
+        if len(files) == 0:
+            # this is fine, leave an empty list for our extractor, return true
+            self._cite_files = []
+            return True
         get_items = self.dataset.get(
             files,
             result_renderer="disabled",
             return_type="iterator",
         )
         self._cite_files = [Path(res["path"]) for res in get_items]
+        return True
 
     @staticmethod
     def _coerce_types(ref) -> dict:
