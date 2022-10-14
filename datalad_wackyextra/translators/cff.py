@@ -77,9 +77,16 @@ class CffTranslator:
             author = NoNoneDict()  # include only properties actually present
             author["name"] = cff_author.get("name")  # in cff, defined for entity, not person
             author["givenName"] = cff_author.get("given-names")
-            author["familyName"] = cff_author.get("family-names")
+            # particle & suffix are not in catalog schema, merge them into familyName
+            if cff_author.get("family-names") is not None:
+                author["familyName"] = " ".join(
+                    [
+                        cff_author.get("name-particle", ""),
+                        cff_author.get("family-names"),
+                        cff_author.get("name-suffix", ""),
+                    ]
+                ).strip()
             author["email"] = cff_author.get("email")
-            # note that we currently ignore name particle and name suffix from cff
             if cff_author.get("orcid") is not None:
                 orcid = {"type": "ORCID", "identifier": cff_author.get("orcid")}
                 # may need to strip the https://orcid.org part
