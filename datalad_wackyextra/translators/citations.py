@@ -40,15 +40,16 @@ class CitationTranslator:
         refs = self.metadata_record["extracted_metadata"]["refs"]
         publications = []
         for ref in refs:
+            translated = {
+                "type": self.get_type(ref),
+                "title": self.get_title(ref),
+                "doi": self.get_doi(ref),
+                "datePublished": self.get_date_published(ref),
+                "authors": self.get_authors(ref),
+                "publicationOutlet": self.get_publication_outlet(ref),
+            }
             publications.append(
-                {
-                    "type": self.get_type(ref),
-                    "title": self.get_title(ref),
-                    "doi": self.get_doi(ref),
-                    "datePublished": self.get_date_published(ref),
-                    "authors": self.get_authors(ref),
-                    "publicationOutlet": self.get_publication_outlet(ref),
-                }
+                {k: v for k, v in translated.items() if v is not None}
             )
         translated_record = {
             "type": self.metadata_record["type"],
