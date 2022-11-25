@@ -19,7 +19,9 @@ Translators are available for all the wacky extractors:
 - `we_cff`,
 and, additionally, for the following metalad extractors:
 - `metalad_core`,
-- `metalad_studyminimeta`.
+- `metalad_studyminimeta`,
+and datalad-catalog extractors:
+- `datacite_gin`.
 
 ## Commands
 - `wacky-translate`: read a json lines file with metadata entries and apply available translators to produce

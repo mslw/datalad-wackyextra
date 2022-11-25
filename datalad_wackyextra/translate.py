@@ -13,6 +13,7 @@ from .translators.citations import RisTranslator, NbibTranslator
 from .translators.cff import CffTranslator
 from .translators.core import MetaladCoreTranslator
 from .translators.minimeta import MinimetaTranslator
+from .translators.datacite import DataciteTranslator
 
 @build_doc
 class Translate(Interface):
@@ -51,6 +52,8 @@ class Translate(Interface):
                     t = MetaladCoreTranslator(j)
                 elif j["extractor_name"] == "metalad_studyminimeta":
                     t = MinimetaTranslator(j)
+                elif j["extractor_name"] == "datacite_gin":
+                    t = DataciteTranslator(j)
                 else:
                     # TODO: what to do (incomplete results)
                     pass
