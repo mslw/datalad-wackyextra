@@ -1,4 +1,7 @@
 import json
+from packaging import version
+
+from datalad_catalog.translate import TranslatorBase
 
 class CitationTranslator:
     """Base class for translators dealing with publications metadata
@@ -7,8 +10,8 @@ class CitationTranslator:
     in accordance with the datalad-catalog schema.
     """
 
-    def __init__(self, metadata_record):
-        self.metadata_record = metadata_record
+    def __init__(self):
+        self.metadata_record = None
 
     def get_type(self, ref):
         pass
@@ -36,7 +39,24 @@ class CitationTranslator:
         ]
         return [{k: self.metadata_record[k] for k in keys}]
 
-    def translate(self):
+    def get_metadata_source(self):
+        result = {
+            "key_source_map": {},
+            "sources": [
+                {
+                    "source_name": self.metadata_record["extractor_name"],
+                    "source_version": self.metadata_record["extractor_version"],
+                    "source_parameter": self.metadata_record["extraction_parameter"],
+                    "source_time": self.metadata_record["extraction_time"],
+                    "agent_email": self.metadata_record["agent_email"],
+                    "agent_name": self.metadata_record["agent_name"],
+                }
+            ],
+        }
+        return result
+
+    def translate(self, metadata):
+        self.metadata_record = metadata
         refs = self.metadata_record["extracted_metadata"]["refs"]
         publications = []
         for ref in refs:
@@ -57,12 +77,28 @@ class CitationTranslator:
             "dataset_version": self.metadata_record["dataset_version"],
             "name": "",
             "publications": publications,
-            "extractors_used": self.get_extractors_used(),
+            "metadata_sources": self.get_metadata_source(),
         }
         return translated_record
 
 
-class RisTranslator(CitationTranslator):
+class RisTranslator(CitationTranslator, TranslatorBase):
+
+    @classmethod
+    def match(cls, source_name, source_version, source_id=None):
+        if source_id is not None:
+            if source_id != "81076796-4e6e-428b-b5c2-79ba9f3e6a05":
+                return False
+        elif source_name != "we_ris":
+            return False
+
+        cat_schema = version.parse(cls.get_current_schema_version())
+        if not(version.parse("1.1") > cat_schema >= version.parse("1.0")):
+            return False
+
+        # extractor version == rispy version, accept all
+        return True
+
 
     @staticmethod
     def _getOneOf(d, *args):
@@ -100,7 +136,23 @@ class RisTranslator(CitationTranslator):
         return self._getOneOf(ref, "journal_name", "secondary_title")
 
 
-class NbibTranslator(CitationTranslator):
+class NbibTranslator(CitationTranslator, TranslatorBase):
+
+    @classmethod
+    def match(cls, source_name, source_version, source_id=None):
+        if source_id is not None:
+            if source_id != "4b898c36-3ff0-4d65-b858-765a3ca83376":
+                return False
+        elif source_name != "we_nbib":
+            return False
+
+        cat_schema = version.parse(cls.get_current_schema_version())
+        if not(version.parse("1.1") > cat_schema >= version.parse("1.0")):
+            return False
+
+        # extractor version == nbib version, accept all
+        return True
+
 
     def get_type(self, ref):
         """ Returns publication type.
@@ -149,16 +201,3 @@ class NbibTranslator(CitationTranslator):
 
     def get_publication_outlet(self, ref):
         return ref.get("journal")
-
-
-if __name__ == "__main__":
-    import sys
-    fname = sys.argv[1]
-    with open(fname) as jf:
-        for line in jf:
-            j = json.loads(line)
-            if j["extractor_name"] == "we_ris":
-                t = RisTranslator(j).translate()
-            elif j["extractor_name"] == "we_nbib":
-                t = NbibTranslator(j).translate()
-            print(json.dumps(t))
