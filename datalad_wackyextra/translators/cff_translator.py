@@ -1,6 +1,7 @@
 from collections import UserDict
 from datalad_catalog.translate import TranslatorBase
 import jq
+from packaging import version
 
 class NoNoneDict(UserDict):
     """A dictionary which ignores setting when value is None
@@ -20,26 +21,19 @@ class CFFTranslator(TranslatorBase):
     Inherits from base class TranslatorBase.
     """
 
-    def __init__(self):
-        pass
+    @classmethod
+    def match(cls, source_name, source_version, source_id=None):
+        if source_id is not None:
+            if source_id != "b7089877-25f8-4f51-a4d0-de54da0f8ac3":
+                return False
+        elif source_name != "we_cff":
+            return False
 
-    def get_supported_schema_version(self):
-        """
-        Reports the version of the catalog schema supported by the translator
-        """
-        return "1.0.0"
+        cat_schema = version.parse(cls.get_current_schema_version())
+        if not(version.parse("1.1") > cat_schema >= version.parse("1.0")):
+            return False
 
-    def get_supported_extractor_name(self):
-        """
-        Reports the name of the extractor supported by the translator
-        """
-        return "metalad_core"
-
-    def get_supported_extractor_version(self):
-        """
-        Reports the version of the extractor supported by the translator
-        """
-        return "1"
+        return version.parse(source_version) < version.parse("0.1")
 
     def translate(self, metadata: dict) -> dict:
         """
