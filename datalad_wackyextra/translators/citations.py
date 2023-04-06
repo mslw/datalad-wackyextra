@@ -1,5 +1,6 @@
 import json
 from packaging import version
+from urllib.parse import urlparse
 
 from datalad_catalog.translate import TranslatorBase
 
@@ -12,6 +13,15 @@ class CitationTranslator:
 
     def __init__(self):
         self.metadata_record = None
+
+    @staticmethod
+    def _getOneOf(d, *args):
+        """Helper to get first matching key with content from dict"""
+        for key in args:
+            val = d.get(key)
+            if val is not None:
+                break
+        return val
 
     def get_type(self, ref):
         pass
@@ -99,14 +109,6 @@ class RisTranslator(CitationTranslator, TranslatorBase):
         # extractor version == rispy version, accept all
         return True
 
-
-    @staticmethod
-    def _getOneOf(d, *args):
-        for key in args:
-            val = d.get(key)
-            if val is not None:
-                break
-        return val
 
     def get_type(self, ref):
         type_map = {
@@ -201,3 +203,60 @@ class NbibTranslator(CitationTranslator, TranslatorBase):
 
     def get_publication_outlet(self, ref):
         return ref.get("journal")
+
+
+class CrossrefTranslator(CitationTranslator, TranslatorBase):
+
+    @classmethod
+    def match(cls, source_name, source_version, source_id=None):
+        if source_id is not None:
+            if source_id != "579e1483-47e7-4ed6-a06c-179418e1a12e":
+                return False
+        elif source_name != "we_crossref":
+            return False
+
+        cat_schema = version.parse(cls.get_current_schema_version())
+        if not(version.parse("1.1") > cat_schema >= version.parse("1.0")):
+            return False
+
+        return version.parse(source_version) < version.parse("0.1")
+
+    def get_type(self, ref):
+        cr_type = ref.get("type")
+        type_map = {"journal-article": "Journal Article"}
+        return type_map.get(cr_type, cr_type)
+
+    def get_title(self, ref):
+        return ref.get("title")[0]
+
+    def get_doi(self, ref):
+        doi = ref.get("DOI")
+        return "https://doi.org/" + doi if doi is not None else ""
+
+    def get_date_published(self, ref):
+        published = self._getOneOf(ref, "published", "published-print", "published-online")
+        if published is not None:
+            published = published["date-parts"][0][0]
+        return published
+
+    def get_authors(self, ref):
+        authors = []
+        for author in ref.get("author"):
+            a = {
+                "givenName": author.get("given", ""),
+                "familyName": author.get("family", ""),
+                "name": " ".join([author.get(x, "") for x in ("given", "family")]),
+            }
+            if (orcid := author.get("ORCID")) is not None:
+                a["identifiers"] = [
+                    {
+                        "type": "ORCID",
+                        "identifier": urlparse(orcid).path.lstrip("/"),
+                    }
+                ]
+            authors.append(a)
+        return authors
+
+    def get_publication_outlet(self, ref):
+        title = ref.get("container-title")
+        return title[0] if title is not None else None

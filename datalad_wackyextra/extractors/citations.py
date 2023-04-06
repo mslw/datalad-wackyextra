@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from importlib.metadata import version
+import json
 from pathlib import Path
 from uuid import UUID
 
@@ -101,6 +102,68 @@ class NbibExtractor(DatasetMetadataExtractor):
         for f in self._cite_files:
             for ref in nbib.read_file(f):
                 refs.append(self._coerce_types(ref))
+        return refs
+
+    def extract(self, _=None) -> ExtractorResult:
+        return ExtractorResult(
+            extractor_version=self.get_version(),
+            extraction_parameter=self.parameter or {},
+            extraction_success=True,
+            datalad_result_dict={
+                "type": "dataset",
+                "status": "ok",
+            },
+            immediate_data={
+                "id": self.dataset.id,
+                "refcommit": self.dataset.repo.get_hexsha(),
+                "refs": self._read_files(),
+            }
+        )
+
+
+class CrossrefExtractor(DatasetMetadataExtractor):
+    """Extract *.crossref.json files
+
+    This extractor reads contents of all files named *.crossref.json
+    and returns them as-is. Any processing is left to the translator.
+
+    Since the extractor puts the content into "refs", this means that,
+    for similar behaviour with other extractors, we expect the json
+    file to contain the content of message.items, not the entire json
+    content returned from crossref API.
+
+    """
+
+    def get_id(self) -> UUID:
+        return UUID("579e1483-47e7-4ed6-a06c-179418e1a12e")
+
+    def get_version(self) -> str:
+        return "0.0.1"
+
+    def get_data_output_category(self) -> DataOutputCategory:
+        return DataOutputCategory.IMMEDIATE
+
+    def get_required_content(self) -> bool:
+        files = list(self.dataset.repo.call_git_items_(["ls-files", "*.crossref.json"]))
+        if len(files) == 0:
+            # this is fine, leave an empty list for our extractor, return true
+            self._cite_files = []
+            return True
+        get_items = self.dataset.get(
+            # note: get([]) would get everything, hence conditional above
+            files,
+            result_renderer="disabled",
+            return_type="iterator",
+        )
+        # todo: proper error handling
+        self._cite_files = [Path(res["path"]) for res in get_items]
+        return True
+
+    def _read_files(self) -> list[dict]:
+        refs = []
+        for f in self._cite_files:
+            with open(f) as fp:
+                refs.append(json.load(fp))
         return refs
 
     def extract(self, _=None) -> ExtractorResult:
