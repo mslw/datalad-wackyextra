@@ -1,5 +1,6 @@
 import json
 from packaging import version
+import re
 from urllib.parse import urlparse
 
 from datalad_catalog.translate import TranslatorBase
@@ -221,13 +222,25 @@ class CrossrefTranslator(CitationTranslator, TranslatorBase):
 
         return version.parse(source_version) < version.parse("0.1")
 
+    @staticmethod
+    def _fixup_title(title):
+        # title may contain several different html tags like <i>...</i>
+        # the regex will match <foo> and </bar> but not <>, <foo bar> or <<foo>>
+        title = re.sub(r"<(?!<)[^> ]+>(?!>)", "", title)
+        # no newlines
+        title = re.sub(r"\n", " ", title)
+        # more than 2 spaces are probably accidental
+        title = re.sub(r" {3,}", " ", title)
+        return title
+
     def get_type(self, ref):
         cr_type = ref.get("type")
         type_map = {"journal-article": "Journal Article"}
         return type_map.get(cr_type, cr_type)
 
     def get_title(self, ref):
-        return ref.get("title")[0]
+        title = ref.get("title")[0]
+        return self._fixup_title(title)
 
     def get_doi(self, ref):
         doi = ref.get("DOI")
