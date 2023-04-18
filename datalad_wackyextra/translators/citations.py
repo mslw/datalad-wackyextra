@@ -127,7 +127,11 @@ class RisTranslator(CitationTranslator, TranslatorBase):
 
     def get_doi(self, ref):
         doi = ref.get("doi")
-        return "https://doi.org/" + doi if doi is not None else ""
+        if doi is None:
+            return ""
+        prefix = "" if doi.startswith("http") else "https://doi.org/"
+        return prefix + doi
+
 
     def get_date_published(self, ref):
         return self._getOneOf(ref, "year", "publication_year")
