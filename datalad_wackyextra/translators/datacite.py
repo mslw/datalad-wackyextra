@@ -45,6 +45,7 @@ class DataciteTranslator:
             "{\"name\": $element, \"identifier\": \"\", \"description\": \"\"}]"
         )
         result = jq.first(program, self.extracted_metadata)
+        return result
 
     def get_publications(self):
         program = (
@@ -52,12 +53,13 @@ class DataciteTranslator:
             "{\"type\":\"\", "
             "\"title\":$pubin[\"citation\"], "
             "\"doi\":"
-            "($pubin[\"id\"] | sub(\"DOI:\"; \"https://www.doi.org/\")), "
+            "($pubin[\"id\"] | sub(\"(?i)doi:\"; \"https://doi.org/\")), "
             "\"datePublished\":\"\", "
             "\"publicationOutlet\":\"\", "
             "\"authors\": []}]"
         )
         result = jq.first(program, self.extracted_metadata)
+        return result
 
     def get_extractors_used(self):
         keys = [
