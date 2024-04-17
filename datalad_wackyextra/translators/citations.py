@@ -42,6 +42,13 @@ class CitationTranslator:
     def get_publication_outlet(self, ref):
         pass
 
+    def get_supported_schema_version(self):
+        """
+        Report supported catalog schema
+        """
+        return "1.0.0"
+
+
     def get_extractors_used(self):
         keys = [
             "extractor_name", "extractor_version",
@@ -96,20 +103,27 @@ class CitationTranslator:
 class RisTranslator(CitationTranslator, TranslatorBase):
 
     @classmethod
-    def match(cls, source_name, source_version, source_id=None):
+    def match(cls, schema_version, source_name, source_version, source_id=None):
         if source_id is not None:
             if source_id != "81076796-4e6e-428b-b5c2-79ba9f3e6a05":
                 return False
-        elif source_name != "we_ris":
+        elif source_name != cls.get_supported_extractor_name():
             return False
 
-        cat_schema = version.parse(cls.get_current_schema_version())
+        cat_schema = version.parse(schema_version)
         if not(version.parse("1.1") > cat_schema >= version.parse("1.0")):
             return False
 
         # extractor version == rispy version, accept all
         return True
 
+    @classmethod
+    def get_supported_extractor_name(self):
+        return "we_ris"
+
+    @classmethod
+    def get_supported_extractor_version(self):
+        return "0.0.1"
 
     def get_type(self, ref):
         type_map = {
@@ -146,20 +160,27 @@ class RisTranslator(CitationTranslator, TranslatorBase):
 class NbibTranslator(CitationTranslator, TranslatorBase):
 
     @classmethod
-    def match(cls, source_name, source_version, source_id=None):
+    def match(cls, schema_version, source_name, source_version, source_id=None):
         if source_id is not None:
             if source_id != "4b898c36-3ff0-4d65-b858-765a3ca83376":
                 return False
-        elif source_name != "we_nbib":
+        elif source_name != cls.get_supported_extractor_name():
             return False
 
-        cat_schema = version.parse(cls.get_current_schema_version())
+        cat_schema = version.parse(schema_version)
         if not(version.parse("1.1") > cat_schema >= version.parse("1.0")):
             return False
 
         # extractor version == nbib version, accept all
         return True
 
+    @classmethod
+    def get_supported_extractor_name(self):
+        return "we_nbib"
+
+    @classmethod
+    def get_supported_extractor_version(self):
+        return "0.0.1"
 
     def get_type(self, ref):
         """ Returns publication type.
@@ -213,18 +234,26 @@ class NbibTranslator(CitationTranslator, TranslatorBase):
 class CrossrefTranslator(CitationTranslator, TranslatorBase):
 
     @classmethod
-    def match(cls, source_name, source_version, source_id=None):
+    def match(cls, schema_version, source_name, source_version, source_id=None):
         if source_id is not None:
             if source_id != "579e1483-47e7-4ed6-a06c-179418e1a12e":
                 return False
-        elif source_name != "we_crossref":
+        elif source_name != cls.get_supported_extractor_name():
             return False
 
-        cat_schema = version.parse(cls.get_current_schema_version())
+        cat_schema = version.parse(schema_version)
         if not(version.parse("1.1") > cat_schema >= version.parse("1.0")):
             return False
 
         return version.parse(source_version) < version.parse("0.1")
+
+    @classmethod
+    def get_supported_extractor_name(self):
+        return "we_crossref"
+
+    @classmethod
+    def get_supported_extractor_version(self):
+        return "0.0.1"
 
     @staticmethod
     def _fixup_title(title):

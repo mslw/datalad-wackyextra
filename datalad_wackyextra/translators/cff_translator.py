@@ -22,14 +22,14 @@ class CFFTranslator(TranslatorBase):
     """
 
     @classmethod
-    def match(cls, source_name, source_version, source_id=None):
+    def match(cls, schema_version, source_name, source_version, source_id=None):
         if source_id is not None:
             if source_id != "b7089877-25f8-4f51-a4d0-de54da0f8ac3":
                 return False
         elif source_name != "we_cff":
             return False
 
-        cat_schema = version.parse(cls.get_current_schema_version())
+        cat_schema = version.parse(schema_version)
         if not(version.parse("1.1") > cat_schema >= version.parse("1.0")):
             return False
 
@@ -40,6 +40,16 @@ class CFFTranslator(TranslatorBase):
         Translates incoming metadata into the catalog schema
         """
         return CFFTranslatorMain(metadata).translate()
+
+    def get_supported_extractor_name(self):
+        return "we_cff"
+
+    def get_supported_extractor_version(self):
+        return "0.0.1"
+
+    def get_supported_schema_version(self):
+        return "1.0.0"
+
 
 
 class CFFTranslatorMain:
